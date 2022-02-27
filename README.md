@@ -13,3 +13,5 @@
 - [vue3官方文档](https://v3.cn.vuejs.org/)
 
 - [vue3源码](https://github.com/vuejs/core)
+
+- [vue-mini-cxr实现](https://github.com/cuixiaorui/mini-vue)
