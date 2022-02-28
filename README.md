@@ -4,7 +4,8 @@
 
 - [x] 01-Vue3 源码结构的介绍
 - [x] 02-reactivity 的核心流程
-- [ ] 03-runtime-core 初始化的核心流
+- [x] 03-runtime-core 初始化的核心流程
+- [ ] 04-runtime-core 更新的核心流程
 
 ## vue3源码实战课相关资料
 
