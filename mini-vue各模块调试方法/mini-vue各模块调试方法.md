@@ -2,7 +2,7 @@
 
 ## reactivity模块调试(src/reactivity)
 
-vscode中jest插件，reactive.spec.ts(src/reactivity/__tests__/reactive.spec.ts)里面打断点
+vscode中jest插件，reactive.spec.ts(src/reactivity/__tests__/reactive.spec.ts)里面打断点, 点击鼠标右键(选择 Debeg Jest)
 
 ## runtime-core初始化的核心流程调试(example/helloWorld/main.js)
 
