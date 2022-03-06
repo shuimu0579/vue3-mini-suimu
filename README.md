@@ -8,8 +8,8 @@
 - [x] 04-runtime-core 更新的核心流程
 - [x] 05-setup环境-集成jest做单元测试-集成ts
 - [x] 06-实现 effect & reactive & 依赖收集 & 触发依赖
-- [ ] 07-实现 effect 返回 runner
-- [ ] 08-实现 effect 的scheduler 功能
+- [x] 07-实现 effect 返回 runner
+- [x] 08-实现 effect 的scheduler 功能
 - [ ] 09-实现 effect 的 stop 功能
 - [ ] 10-实现 readonly 功能
 - [ ] 11-实现 isReactive 和 isReadonly
