@@ -11,8 +11,8 @@
 - [x] 07-实现 effect 返回 runner
 - [x] 08-实现 effect 的scheduler 功能
 - [x] 09-实现 effect 的 stop 功能
-- [ ] 10-实现 readonly 功能
-- [ ] 11-实现 isReactive 和 isReadonly
+- [x] 10-实现 readonly 功能
+- [x] 11-实现 isReactive 和 isReadonly
 - [ ] 12-优化 stop 功能
 - [ ] 13-实现 reactive 和 readonly 嵌套对象转换功能
 - [ ] 14-实现 shallowReadonly 功能
