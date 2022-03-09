@@ -1,5 +1,7 @@
 import { extend } from "../shared";
 
+let activeEffect;  //记录当前ReactiveEffect的实例对象
+let shouldTrack;
 class ReactiveEffect {
     private _fn : any;
     deps = [];
@@ -10,8 +12,18 @@ class ReactiveEffect {
         this._fn = fn
     }
     run(){
+        if(!this.active){
+            return this._fn();
+        }
+
+        shouldTrack = true;
         activeEffect = this
-        return this._fn();
+
+        const result = this._fn();
+        // reset
+        shouldTrack = false;
+
+        return result;
     }
     stop(){
         if(this.active){
@@ -27,7 +39,8 @@ class ReactiveEffect {
 function cleanupEffect(effect){
     effect.deps.forEach((dep:any) => {
         dep.delete(effect)
-    })
+    });
+    effect.deps.length = 0;
 }
 
 const targetMap = new Map();
@@ -51,6 +64,7 @@ export function track(target, key){
     }
 
     if(!activeEffect) return;
+    if(!shouldTrack) return;
 
     if (!dep.has(activeEffect)) {
         dep.add(activeEffect);
@@ -70,7 +84,6 @@ export function trigger(target,key){
     }
 }
 
-let activeEffect;  //记录当前ReactiveEffect的实例对象
 export function effect(fn, options:any = {}){
     const _effect = new ReactiveEffect(fn, options.scheduler);
 
