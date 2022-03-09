@@ -45,6 +45,8 @@ function cleanupEffect(effect){
 
 const targetMap = new Map();
 export function track(target, key){
+    if(!isTracking()) return;
+
     // targetMap(target -> depsMap(key -> dep)), 
     // 其中targetMap建立target和depsMap的关系
     // depsMap建立key和dep之间的关系
@@ -62,14 +64,9 @@ export function track(target, key){
         dep = new Set()
         depsMap.set(key, dep)
     }
-
-    if(!activeEffect) return;
-    if(!shouldTrack) return;
-
-    if (!dep.has(activeEffect)) {
-        dep.add(activeEffect);
-        (activeEffect as any).deps.push(dep);
-    }
+    if (dep.has(activeEffect)) return;
+    dep.add(activeEffect);
+    (activeEffect as any).deps.push(dep);
 }
 
 export function trigger(target,key){
@@ -102,3 +99,7 @@ export function effect(fn, options:any = {}){
 export function stop(runner:any){
     runner.effect.stop()
 } 
+
+function isTracking(){
+    return shouldTrack && activeEffect !== undefined
+}

@@ -71,7 +71,7 @@ describe('effect', ()=>{
         expect(dummy).toBe(2);
         stop(runner);
         // obj.prop = 3
-        obj.prop++
+        obj.prop++  // 12-优化 stop 功能的另一中边缘case
         expect(dummy).toBe(2);
 
         // stopped effect should still be manually callable
