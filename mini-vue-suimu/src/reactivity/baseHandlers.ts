@@ -9,7 +9,7 @@ const shallowReadonlyGet = createGetter(true, true)
 
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target, key) {
-    console.log(key)
+    // console.log(key)
 
     if(key === ReactiveFlags.IS_REACTIVE){
       return !isReadonly

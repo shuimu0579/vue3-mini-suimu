@@ -64,21 +64,31 @@ export function track(target, key){
         dep = new Set()
         depsMap.set(key, dep)
     }
+
+    trackEffects(dep)
+}
+
+export function trackEffects(dep:any){
     if (dep.has(activeEffect)) return;
     dep.add(activeEffect);
     (activeEffect as any).deps.push(dep);
 }
 
+
 export function trigger(target,key){
     let depsMap = targetMap.get(target)
     let dep = depsMap.get(key)
+    triggerEffects(dep)
+}
+
+export function triggerEffects(dep:any){
     for(let effect of dep){
         if(effect.scheduler){
             effect.scheduler()
         }else{
             effect.run()
         } 
-    }
+    } 
 }
 
 export function effect(fn, options:any = {}){
@@ -87,7 +97,7 @@ export function effect(fn, options:any = {}){
     //extend 公共方法
     extend(_effect,options)
 
-    console.log('_effect',_effect)
+    // console.log('_effect',_effect)
     _effect.run()
 
     const runner:any = _effect.run.bind(_effect)
@@ -100,6 +110,6 @@ export function stop(runner:any){
     runner.effect.stop()
 } 
 
-function isTracking(){
+export function isTracking(){
     return shouldTrack && activeEffect !== undefined
 }
