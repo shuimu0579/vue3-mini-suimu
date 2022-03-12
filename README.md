@@ -14,8 +14,8 @@
 - [x] 10-实现 readonly 功能
 - [x] 11-实现 isReactive 和 isReadonly
 - [x] 12-优化 stop 功能
-- [ ] 13-实现 reactive 和 readonly 嵌套对象转换功能
-- [ ] 14-实现 shallowReadonly 功能
+- [x] 13-实现 reactive 和 readonly 嵌套对象转换功能
+- [x] 14-实现 shallowReadonly 功能
 - [ ] 15-实现 isProxy 功能
 - [ ] 16-实现 ref 功能
 - [ ] 17-实现 isRef 和 unRef 功能

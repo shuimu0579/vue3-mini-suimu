@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test-hot": "jest --watchAll"
   },
   "author": "suimu",
   "license": "ISC",

@@ -1,6 +1,6 @@
 import { readonly, isReadonly } from '../reactive'
 describe('readonly', () => {
-  it('happy path', () => {
+  it('happy path and should make nested values readonly', () => {
     // 和reactive没有其他区别，只是readonly没有set
     // 也就是他不需要触发依赖，也就不需要依赖收集
     const original = { foo: 1, bar: { baz: 2 } }
@@ -8,6 +8,10 @@ describe('readonly', () => {
     expect(wrapped).not.toBe(original)
     expect(isReadonly(wrapped)).toBe(true)
     expect(isReadonly(original)).toBe(false)
+
+    expect(isReadonly(wrapped.bar)).toBe(true)
+    expect(isReadonly(original.bar)).toBe(false)
+
     expect(wrapped.foo).toBe(1)
   })
 
