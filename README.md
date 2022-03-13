@@ -20,7 +20,7 @@
 - [x] 16-实现 ref 功能
 - [x] 17-实现 isRef 和 unRef 功能
 - [x] 18-实现 proxyRefs 功能( https://appewiejl9g3764.h5.xiaoeknow.com/v1/course/video/v_61ff9a10e4b066e96082f582?type=2&pro_id=p_61fb595ce4b0beaee4275e1e&from_multi_course=1 )
-- [ ] 19-实现 computed 计算属性
+- [x] 19-实现 computed 计算属性( https://appewiejl9g3764.h5.xiaoeknow.com/v1/course/video/v_61ff9a0ee4b04d7e2fc98e31?type=2&pro_id=p_61fb595ce4b0beaee4275e1e&from_multi_course=1 )
 
 - [ ] 20-实现初始化 component 主流程
 - [ ] 21-使用 rollup 打包库

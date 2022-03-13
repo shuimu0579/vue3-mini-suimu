@@ -2,7 +2,7 @@ import { extend } from "../shared";
 
 let activeEffect;  //记录当前ReactiveEffect的实例对象
 let shouldTrack;
-class ReactiveEffect {
+export class ReactiveEffect {
     private _fn : any;
     deps = [];
     active = true;
