@@ -54,3 +54,24 @@ export function unRef(ref) {
     // ref
     return isRef(ref) ? ref.value : ref;
 }
+
+// 在template里面有用，不用在template里面 .value来获取值了
+export function proxyRefs(objectWithRefs) {
+    return new Proxy(objectWithRefs, {
+        get(target, key){
+            // get -> age(ref) 那么就给他返回 .value
+            // not ref -> 直接返回基本类型值
+            return unRef(Reflect.get(target, key))
+        },
+        set(target,key,value){
+            // 这里是特例
+            if(isRef(target[key]) && !isRef(value)){
+                return target[key].value = value
+            }else {
+                // 这里是常见情况
+                return Reflect.set(target, key ,value)
+            }
+        }
+    })
+    
+}
