@@ -7,8 +7,11 @@ export function render(vnode, container){
 
 function patch(vnode, container){
 
-    // 判断一下是不是element类型
-    // TODO 如果是的 mountElement
+    // TODO 判断一下是不是element类型
+    // 如果是一个element, 那个就应该处理一个element
+
+    // 思考：如何去区分是element类型还是component类型
+    // processElement()
 
     // 去处理组件
     processComponent(vnode, container)
