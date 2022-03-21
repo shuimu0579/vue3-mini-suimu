@@ -2,6 +2,25 @@ const isObject = (val) => {
     return val !== null && typeof val === "object";
 };
 
+const publicPropertiesMap = {
+    $el: (i) => i.vnode.el,
+};
+const PublicInstanceProxyHandlers = {
+    get({ _: instance }, key) {
+        // setupState
+        const { setupState } = instance;
+        if (key in setupState) {
+            return setupState[key];
+        }
+        // key -> $el
+        const publicGetter = publicPropertiesMap[key];
+        if (publicGetter) {
+            return publicGetter(instance);
+        }
+        //$data
+    }
+};
+
 function createComponentInstance(vnode) {
     const component = {
         vnode,
@@ -18,15 +37,7 @@ function setupComponent(instance) {
 function setupStatefulComponent(instance) {
     const Component = instance.type;
     // ctx
-    instance.proxy = new Proxy({}, {
-        get(target, key) {
-            // setupState
-            const { setupState } = instance;
-            if (key in setupState) {
-                return setupState[key];
-            }
-        }
-    });
+    instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
     const { setup } = Component;
     if (setup) {
         const setupResult = setup();
@@ -69,18 +80,24 @@ function processComponent(vnode, container) {
     //挂载组件
     mountComponent(vnode, container);
 }
-function mountComponent(vnode, container) {
-    const instance = createComponentInstance(vnode);
+function mountComponent(initialVNode, container) {
+    const instance = createComponentInstance(initialVNode);
     setupComponent(instance);
-    setupRenderEffect(instance, container);
+    setupRenderEffect(instance, initialVNode, container);
 }
-function setupRenderEffect(instance, container) {
+function setupRenderEffect(instance, initialVNode, container) {
     const { proxy } = instance;
     // subTree 就是vnode
     const subTree = instance.render.call(proxy);
-    // vnode -> patch
-    // vnode -> element -> mountElement
+    // initialVNode -> patch
+    // initialVNode -> element -> mountElement
     patch(subTree, container);
+    // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
+    // element -> mount
+    // 
+    // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
+    // 将subTree这个虚拟节点的el赋值给App.vue组件的虚拟节点的el
+    initialVNode.el = subTree.el;
 }
 function processElement(vnode, container) {
     //挂载元素
@@ -88,7 +105,8 @@ function processElement(vnode, container) {
 }
 function mountElement(vnode, container) {
     const { type, props, children } = vnode;
-    const el = document.createElement(type);
+    // vnode -> element -> div
+    const el = (vnode.el = document.createElement(type));
     if (typeof children === 'string') {
         el.textContent = children;
     }
@@ -111,7 +129,8 @@ function createVNode(type, props, children) {
     const vnode = {
         type,
         props,
-        children
+        children,
+        el: null,
     };
     return vnode;
 }

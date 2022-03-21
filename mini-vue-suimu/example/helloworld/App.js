@@ -1,7 +1,10 @@
 import {h} from '../../lib/guide-mini-vue.esm.js'
 
+window.self = null;
+
 export const App = {
     render(){
+        window.self = this;
         // ui
         return h(
             'div', 
@@ -10,6 +13,8 @@ export const App = {
                 class: ["red", "hard"]
             }, 
             // string
+            // setupState
+            // this.$el -> get 当前组件的 root  element
             'hi, ' + this.msg
             // 'hi, mini-vue'
             // array
