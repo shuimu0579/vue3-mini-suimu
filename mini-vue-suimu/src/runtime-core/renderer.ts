@@ -48,7 +48,8 @@ function setupRenderEffect(instance: any, initialVNode, container: any) {
   // element -> mount
   // 
   // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
-  // 将subTree这个虚拟节点的el赋值给App.vue组件的虚拟节点的el
+  // 这里的subTree.el就是mountElement()里面的vnode.el
+  // 此时，subTree.el已经是创建出的真实DOM节点了
   initialVNode.el = subTree.el;
 }
 function processElement(vnode: any, container: any) {
@@ -60,6 +61,7 @@ function mountElement(vnode, container) {
     const { type, props, children } = vnode;
 
     // vnode -> element -> div
+    // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
     const el = (vnode.el = document.createElement(type));
 
     if(typeof children === 'string'){
