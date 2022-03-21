@@ -10,10 +10,10 @@ export const App = {
                 class: ["red", "hard"]
             }, 
             // string
-            // 'hi, ' + this.msg
+            'hi, ' + this.msg
             // 'hi, mini-vue'
             // array
-            [h('p',{ class:"red" }, 'hi'), h('p', {class:'blue'}, 'mini-vue')]
+            // [h('p',{ class:"red" }, 'hi'), h('p', {class:'blue'}, 'mini-vue')]
         );
     },
     setup() {

@@ -29,7 +29,7 @@
 - [x] 20-实现初始化 component 主流程(https://www.wolai.com/cuixiaorui/gwMSFanKJExqPGef9GRnHx)
 - [x] 21-使用 rollup 打包库(https://www.wolai.com/cuixiaorui/ZTgHwy4gNUnP1T8ev8PV5)
 - [x] 22-实现初始化 element 主流程(https://www.wolai.com/cuixiaorui/oHbdAYnX1PGTkE762Syu5b)
-- [ ] 23-实现组件代理对象(https://www.wolai.com/cuixiaorui/aEYKuncuPSYboi3juJDmit)
+- [x] 23-实现组件代理对象(https://www.wolai.com/cuixiaorui/aEYKuncuPSYboi3juJDmit)
 - [ ] 24-实现 shapeFlags(https://www.wolai.com/cuixiaorui/i9eGGRQTwnEbjatX2MJ61z)
 - [ ] 25-实现注册事件功能(https://www.wolai.com/cuixiaorui/vNt3RPcoSnNq5J5gbRMFzT)
 - [ ] 26-实现组件 props 功能(https://www.wolai.com/cuixiaorui/q2bDQrVotT4XmXvfBHgsLo)

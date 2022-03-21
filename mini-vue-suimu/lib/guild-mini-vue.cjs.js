@@ -9,7 +9,8 @@ const isObject = (val) => {
 function createComponentInstance(vnode) {
     const component = {
         vnode,
-        type: vnode.type
+        type: vnode.type,
+        setupState: {}
     };
     return component;
 }
@@ -20,6 +21,16 @@ function setupComponent(instance) {
 }
 function setupStatefulComponent(instance) {
     const Component = instance.type;
+    // ctx
+    instance.proxy = new Proxy({}, {
+        get(target, key) {
+            // setupState
+            const { setupState } = instance;
+            if (key in setupState) {
+                return setupState[key];
+            }
+        }
+    });
     const { setup } = Component;
     if (setup) {
         const setupResult = setup();
@@ -68,8 +79,9 @@ function mountComponent(vnode, container) {
     setupRenderEffect(instance, container);
 }
 function setupRenderEffect(instance, container) {
+    const { proxy } = instance;
     // subTree 就是vnode
-    const subTree = instance.render();
+    const subTree = instance.render.call(proxy);
     // vnode -> patch
     // vnode -> element -> mountElement
     patch(subTree, container);
