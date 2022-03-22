@@ -1,4 +1,4 @@
-import { isObject } from '../shared/index'
+import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component'
 
 export function render(vnode, container) {
@@ -11,12 +11,15 @@ function patch(vnode, container) {
   // 如果是一个element, 那个就应该处理一个element
 
   // 思考：如何去区分是element类型还是component类型
-  //
+  // shapeFlags
   console.log(vnode.type)
-  if (typeof vnode.type === 'string') {
+
+  const { shapeFlag } = vnode;
+
+  if (shapeFlag & ShapeFlags.ELEMENT) {
     //去处理元素
     processElement(vnode, container)
-  } else if(isObject(vnode.type)){
+  } else if(shapeFlag & ShapeFlags.STATEFUL_COMPONENT){
     // 去处理组件
     processComponent(vnode, container)
   }
@@ -58,15 +61,15 @@ function processElement(vnode: any, container: any) {
 }
 
 function mountElement(vnode, container) {
-    const { type, props, children } = vnode;
+    const { type, props, children, shapeFlag } = vnode;
 
     // vnode -> element -> div
     // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
     const el = (vnode.el = document.createElement(type));
 
-    if(typeof children === 'string'){
+    if(shapeFlag & ShapeFlags.TEXT_CHILDREN){
         el.textContent = children;
-    }else if(Array.isArray(children)) {
+    }else if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         mountChildren(vnode, el)
     }
 

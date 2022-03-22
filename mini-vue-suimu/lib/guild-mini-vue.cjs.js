@@ -2,10 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const isObject = (val) => {
-    return val !== null && typeof val === "object";
-};
-
 const publicPropertiesMap = {
     $el: (i) => i.vnode.el,
 };
@@ -69,13 +65,14 @@ function patch(vnode, container) {
     // TODO 判断一下是不是element类型
     // 如果是一个element, 那个就应该处理一个element
     // 思考：如何去区分是element类型还是component类型
-    //
+    // shapeFlags
     console.log(vnode.type);
-    if (typeof vnode.type === 'string') {
+    const { shapeFlag } = vnode;
+    if (shapeFlag & 1 /* ELEMENT */) {
         //去处理元素
         processElement(vnode, container);
     }
-    else if (isObject(vnode.type)) {
+    else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
         // 去处理组件
         processComponent(vnode, container);
     }
@@ -109,14 +106,14 @@ function processElement(vnode, container) {
     mountElement(vnode, container);
 }
 function mountElement(vnode, container) {
-    const { type, props, children } = vnode;
+    const { type, props, children, shapeFlag } = vnode;
     // vnode -> element -> div
     // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
     const el = (vnode.el = document.createElement(type));
-    if (typeof children === 'string') {
+    if (shapeFlag & 4 /* TEXT_CHILDREN */) {
         el.textContent = children;
     }
-    else if (Array.isArray(children)) {
+    else if (shapeFlag & 8 /* ARRAY_CHILDREN */) {
         mountChildren(vnode, el);
     }
     for (const key in props) {
@@ -136,9 +133,20 @@ function createVNode(type, props, children) {
         type,
         props,
         children,
+        shapeFlag: getShapeFlag(type),
         el: null,
     };
+    // children
+    if (typeof children === "string") {
+        vnode.shapeFlag = vnode.shapeFlag | 4 /* TEXT_CHILDREN */;
+    }
+    else if (Array.isArray(children)) {
+        vnode.shapeFlag = vnode.shapeFlag | 8 /* ARRAY_CHILDREN */;
+    }
     return vnode;
+}
+function getShapeFlag(type) {
+    return typeof type === "string" ? 1 /* ELEMENT */ : 2 /* STATEFUL_COMPONENT */;
 }
 
 function createApp(rootComponent) {
