@@ -32,7 +32,7 @@
 - [x] 23-实现组件代理对象(https://www.wolai.com/cuixiaorui/aEYKuncuPSYboi3juJDmit)
 - [x] 24-实现 shapeFlags(https://www.wolai.com/cuixiaorui/i9eGGRQTwnEbjatX2MJ61z)
 - [x] 25-实现注册事件功能(https://www.wolai.com/cuixiaorui/vNt3RPcoSnNq5J5gbRMFzT)
-- [ ] 26-实现组件 props 功能(https://www.wolai.com/cuixiaorui/q2bDQrVotT4XmXvfBHgsLo)
+- [x] 26-实现组件 props 功能(https://www.wolai.com/cuixiaorui/q2bDQrVotT4XmXvfBHgsLo)
 - [ ] 27-实现组件 emit 功能(https://www.wolai.com/cuixiaorui/5C9nAe8Vvg3eTXNVmLf3C6)
 - [ ] 28-实现组件 slots 功能(https://www.wolai.com/cuixiaorui/4EqgLa7wucKGrQoW4kiykB)
 - [ ] 29-实现 Fragment 和 Text 类型节点(https://www.wolai.com/cuixiaorui/rQpih2Gb1gfw93ECnQzvRF)

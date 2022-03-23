@@ -2,15 +2,113 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+const extend = Object.assign;
+const isObject = (val) => {
+    return val !== null && typeof val === "object";
+};
+const hasOwn = (val, key) => Object.prototype.hasOwnProperty.call(val, key);
+
+const targetMap = new Map();
+function trigger(target, key) {
+    let depsMap = targetMap.get(target);
+    let dep = depsMap.get(key);
+    triggerEffects(dep);
+}
+function triggerEffects(dep) {
+    for (let effect of dep) {
+        if (effect.scheduler) {
+            effect.scheduler();
+        }
+        else {
+            effect.run();
+        }
+    }
+}
+
+const get = createGetter();
+const set = createSetter();
+const readonlyGet = createGetter(true);
+const shallowReadonlyGet = createGetter(true, true);
+function createGetter(isReadonly = false, shallow = false) {
+    return function get(target, key) {
+        // console.log(key)
+        if (key === "__v_isReactive" /* IS_REACTIVE */) {
+            return !isReadonly;
+        }
+        else if (key === "__v_isReadonly" /* IS_READONLY */) {
+            return isReadonly;
+        }
+        const res = Reflect.get(target, key);
+        if (shallow) {
+            return res;
+        }
+        // 看看res是不是object
+        if (isObject(res)) {
+            return isReadonly ? readonly(res) : reactive(res);
+        }
+        return res;
+    };
+}
+function createSetter() {
+    return function set(target, key, value) {
+        const res = Reflect.set(target, key, value);
+        // TODO 触发依赖
+        trigger(target, key);
+        return res;
+    };
+}
+const mutableHandlers = {
+    get,
+    set,
+};
+const readonlyHandlers = {
+    get: readonlyGet,
+    set(target, key, value) {
+        console.warn(`key:${key} set 失败, target 是 readonly`, target);
+        return true;
+    },
+};
+const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+    get: shallowReadonlyGet
+});
+
+function reactive(raw) {
+    return createReactiveObject(raw, mutableHandlers);
+}
+function readonly(raw) {
+    return createReactiveObject(raw, readonlyHandlers);
+}
+function shallowReadonly(raw) {
+    return createReactiveObject(raw, shallowReadonlyHandlers);
+}
+function createReactiveObject(raw, baseHandlers) {
+    if (!isObject(raw)) {
+        console.warn("target ${target} 必须是一个对象");
+        return raw;
+    }
+    return new Proxy(raw, baseHandlers);
+}
+
+//props涉及到3个功能
+// 1、在setup中接收props
+// 2、在render函数里面，通过this可以访问到props里某一个key的值
+// 3、props必须是一个shallowReadonly的值
+function initProps(instance, rawProps) {
+    instance.props = rawProps || {};
+}
+
 const publicPropertiesMap = {
     $el: (i) => i.vnode.el,
 };
 const PublicInstanceProxyHandlers = {
     get({ _: instance }, key) {
         // setupState
-        const { setupState } = instance;
-        if (key in setupState) {
+        const { setupState, props } = instance;
+        if (hasOwn(setupState, key)) {
             return setupState[key];
+        }
+        else if (hasOwn(props, key)) {
+            return props[key];
         }
         // key -> $el
         const publicGetter = publicPropertiesMap[key];
@@ -25,12 +123,13 @@ function createComponentInstance(vnode) {
     const component = {
         vnode,
         type: vnode.type,
-        setupState: {}
+        setupState: {},
+        props: {}
     };
     return component;
 }
 function setupComponent(instance) {
-    // initProps()
+    initProps(instance, instance.vnode.props);
     // initSlots()
     setupStatefulComponent(instance);
 }
@@ -40,7 +139,7 @@ function setupStatefulComponent(instance) {
     instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
     const { setup } = Component;
     if (setup) {
-        const setupResult = setup();
+        const setupResult = setup(shallowReadonly(instance.props));
         handleSetupResult(instance, setupResult);
     }
 }
