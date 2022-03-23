@@ -73,9 +73,18 @@ function mountElement(vnode, container) {
         mountChildren(vnode, el)
     }
 
+    // props
     for(const key in props){
         const val = props[key];
-        el.setAttribute(key, val);
+        console.log(key);
+        // 从具体到通用的逻辑抽象， 具体事件click -> 通用事件
+        const isOn = (key: string) => /^on[A-Z]/.test(key);
+        if(isOn(key)){
+          const event = key.slice(2).toLowerCase()
+          el.addEventListener(event, val);
+        }else{
+          el.setAttribute(key, val);
+        }  
     }
 
     container.append(el);
