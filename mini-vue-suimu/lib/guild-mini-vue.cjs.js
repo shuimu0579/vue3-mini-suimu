@@ -7,6 +7,17 @@ const isObject = (val) => {
     return val !== null && typeof val === "object";
 };
 const hasOwn = (val, key) => Object.prototype.hasOwnProperty.call(val, key);
+const capitalize = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+};
+const toHandlerKey = (str) => {
+    return str ? "on" + capitalize(str) : "";
+};
+const camelize = (str) => {
+    return str.replace(/-(\w)/g, (_, c) => {
+        return c ? c.toUpperCase() : "";
+    });
+};
 
 const targetMap = new Map();
 function trigger(target, key) {
@@ -89,6 +100,17 @@ function createReactiveObject(raw, baseHandlers) {
     return new Proxy(raw, baseHandlers);
 }
 
+function emit(instance, event, ...args) {
+    const { props } = instance;
+    // TPP
+    // 先去写一个特定的行为 -> 重构成通用的行为
+    // add -> Add
+    // add-foo -> addFoo -> AddFoo
+    const handlerName = toHandlerKey(camelize(event));
+    const handler = props[handlerName];
+    handler && handler(...args);
+}
+
 //props涉及到3个功能
 // 1、在setup中接收props
 // 2、在render函数里面，通过this可以访问到props里某一个key的值
@@ -124,8 +146,10 @@ function createComponentInstance(vnode) {
         vnode,
         type: vnode.type,
         setupState: {},
-        props: {}
+        props: {},
+        emit: () => { }
     };
+    component.emit = emit.bind(null, component);
     return component;
 }
 function setupComponent(instance) {
@@ -139,7 +163,9 @@ function setupStatefulComponent(instance) {
     instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
     const { setup } = Component;
     if (setup) {
-        const setupResult = setup(shallowReadonly(instance.props));
+        const setupResult = setup(shallowReadonly(instance.props), {
+            emit: instance.emit
+        });
         handleSetupResult(instance, setupResult);
     }
 }
