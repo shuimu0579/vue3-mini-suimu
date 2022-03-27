@@ -36,7 +36,7 @@
 - [x] 27-实现组件 emit 功能(https://www.wolai.com/cuixiaorui/5C9nAe8Vvg3eTXNVmLf3C6)
 - [x] 28-实现组件 slots 功能(https://www.wolai.com/cuixiaorui/4EqgLa7wucKGrQoW4kiykB)
 - [x] 29-实现 Fragment 和 Text 类型节点(https://www.wolai.com/cuixiaorui/rQpih2Gb1gfw93ECnQzvRF)
-- [ ] 30-实现 getCurrentInstance(https://www.wolai.com/cuixiaorui/5aVXno4MnPrYJeS172YJWE)
+- [x] 30-实现 getCurrentInstance(https://www.wolai.com/cuixiaorui/5aVXno4MnPrYJeS172YJWE)
 - [ ] 31-实现 provide-inject 功能(https://www.wolai.com/cuixiaorui/wi47AmRck7wBduZVbSZFfH)
 - [ ] 32-实现自定义渲染器 custom renderer(https://www.wolai.com/cuixiaorui/pNB836Crjs6MCMWvPwNrGh)
 
