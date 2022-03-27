@@ -202,6 +202,38 @@ function finishComponentSetup(instance) {
     instance.render = Component.render;
 }
 
+const Fragment = Symbol("Flagment");
+const Text = Symbol("Text");
+function createVNode(type, props, children) {
+    const vnode = {
+        type,
+        props,
+        children,
+        shapeFlag: getShapeFlag(type),
+        el: null,
+    };
+    // children
+    if (typeof children === "string") {
+        vnode.shapeFlag = vnode.shapeFlag | 4 /* TEXT_CHILDREN */;
+    }
+    else if (Array.isArray(children)) {
+        vnode.shapeFlag = vnode.shapeFlag | 8 /* ARRAY_CHILDREN */;
+    }
+    // 组件 + children object
+    if (vnode.shapeFlag & 2 /* STATEFUL_COMPONENT */) {
+        if (typeof children === "object") {
+            vnode.shapeFlag |= 16 /* SLOT_CHILDREN */;
+        }
+    }
+    return vnode;
+}
+function createTextVNode(text) {
+    return createVNode(Text, {}, text);
+}
+function getShapeFlag(type) {
+    return typeof type === "string" ? 1 /* ELEMENT */ : 2 /* STATEFUL_COMPONENT */;
+}
+
 function render(vnode, container) {
     //patch
     patch(vnode, container);
@@ -212,15 +244,29 @@ function patch(vnode, container) {
     // 思考：如何去区分是element类型还是component类型
     // shapeFlags
     console.log(vnode.type);
-    const { shapeFlag } = vnode;
-    if (shapeFlag & 1 /* ELEMENT */) {
-        //去处理元素
-        processElement(vnode, container);
+    const { type, shapeFlag } = vnode;
+    // Fragment -> 只渲染 children
+    switch (type) {
+        case Fragment:
+            processFlagment(vnode, container);
+            break;
+        case Text:
+            processText(vnode, container);
+            break;
+        default:
+            if (shapeFlag & 1 /* ELEMENT */) {
+                //去处理元素
+                processElement(vnode, container);
+            }
+            else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
+                // 去处理组件
+                processComponent(vnode, container);
+            }
+            break;
     }
-    else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
-        // 去处理组件
-        processComponent(vnode, container);
-    }
+}
+function processFlagment(vnode, container) {
+    mountChildren(vnode, container);
 }
 function processComponent(vnode, container) {
     //挂载组件
@@ -282,32 +328,10 @@ function mountChildren(vnode, container) {
         patch(v, container);
     });
 }
-
-function createVNode(type, props, children) {
-    const vnode = {
-        type,
-        props,
-        children,
-        shapeFlag: getShapeFlag(type),
-        el: null,
-    };
-    // children
-    if (typeof children === "string") {
-        vnode.shapeFlag = vnode.shapeFlag | 4 /* TEXT_CHILDREN */;
-    }
-    else if (Array.isArray(children)) {
-        vnode.shapeFlag = vnode.shapeFlag | 8 /* ARRAY_CHILDREN */;
-    }
-    // 组件 + children object
-    if (vnode.shapeFlag & 2 /* STATEFUL_COMPONENT */) {
-        if (typeof children === "object") {
-            vnode.shapeFlag |= 16 /* SLOT_CHILDREN */;
-        }
-    }
-    return vnode;
-}
-function getShapeFlag(type) {
-    return typeof type === "string" ? 1 /* ELEMENT */ : 2 /* STATEFUL_COMPONENT */;
+function processText(vnode, container) {
+    const { children } = vnode;
+    const textNode = (vnode.el = document.createTextNode(children));
+    container.append(textNode);
 }
 
 function createApp(rootComponent) {
@@ -331,11 +355,12 @@ function renderSlots(slots, name, props) {
     if (slot) {
         // function
         if (typeof slot === "function") {
-            return createVNode("div", {}, slot(props));
+            return createVNode(Fragment, {}, slot(props));
         }
     }
 }
 
 exports.createApp = createApp;
+exports.createTextVNode = createTextVNode;
 exports.h = h;
 exports.renderSlots = renderSlots;
