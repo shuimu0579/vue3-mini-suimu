@@ -4,10 +4,10 @@ import { Fragment, Text} from './vnode';
 
 export function render(vnode, container) {
   //patch
-  patch(vnode, container)
+  patch(vnode, container, null)
 }
 
-function patch(vnode, container) {
+function patch(vnode, container, parentComponent) {
   // TODO 判断一下是不是element类型
   // 如果是一个element, 那个就应该处理一个element
 
@@ -20,7 +20,7 @@ function patch(vnode, container) {
   // Fragment -> 只渲染 children
   switch(type) {
     case Fragment:
-      processFlagment(vnode, container);
+      processFlagment(vnode, container, parentComponent);
       break;
     case Text:
       processText(vnode, container);
@@ -28,26 +28,26 @@ function patch(vnode, container) {
     default:
       if (shapeFlag & ShapeFlags.ELEMENT) {
         //去处理元素
-        processElement(vnode, container)
+        processElement(vnode, container, parentComponent)
       } else if(shapeFlag & ShapeFlags.STATEFUL_COMPONENT){
         // 去处理组件
-        processComponent(vnode, container)
+        processComponent(vnode, container, parentComponent)
       }
       break;
   }
 }
 
-function processFlagment(vnode: any, container: any){
-  mountChildren(vnode, container);
+function processFlagment(vnode: any, container: any, parentComponent){
+  mountChildren(vnode, container, parentComponent);
 }
 
-function processComponent(vnode: any, container: any) {
+function processComponent(vnode: any, container: any, parentComponent) {
   //挂载组件
-  mountComponent(vnode, container)
+  mountComponent(vnode, container, parentComponent)
 }
 
-function mountComponent(initialVNode: any, container) {
-  const instance = createComponentInstance(initialVNode)
+function mountComponent(initialVNode: any, container, parentComponent) {
+  const instance = createComponentInstance(initialVNode, parentComponent)
 
   setupComponent(instance)
   setupRenderEffect(instance, initialVNode, container)
@@ -61,7 +61,7 @@ function setupRenderEffect(instance: any, initialVNode, container: any) {
   // initialVNode -> patch
   // initialVNode -> element -> mountElement
 
-  patch(subTree, container)
+  patch(subTree, container, instance)
 
   // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
   // element -> mount
@@ -71,12 +71,12 @@ function setupRenderEffect(instance: any, initialVNode, container: any) {
   // 此时，subTree.el已经是创建出的真实DOM节点了
   initialVNode.el = subTree.el;
 }
-function processElement(vnode: any, container: any) {
+function processElement(vnode: any, container: any, parentComponent) {
     //挂载元素
-    mountElement(vnode, container)
+    mountElement(vnode, container, parentComponent)
 }
 
-function mountElement(vnode, container) {
+function mountElement(vnode, container, parentComponent) {
     const { type, props, children, shapeFlag } = vnode;
 
     // vnode -> element -> div
@@ -86,7 +86,7 @@ function mountElement(vnode, container) {
     if(shapeFlag & ShapeFlags.TEXT_CHILDREN){
         el.textContent = children;
     }else if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-        mountChildren(vnode, el)
+        mountChildren(vnode, el, parentComponent)
     }
 
     // props
@@ -107,9 +107,9 @@ function mountElement(vnode, container) {
 
 }
 
-function mountChildren(vnode, container){
+function mountChildren(vnode, container, parentComponent){
     vnode.children.forEach(v =>{
-        patch(v, container);
+        patch(v, container, parentComponent);
     })
 }
 
