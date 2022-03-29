@@ -2,6 +2,52 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+const Fragment = Symbol("Flagment");
+const Text = Symbol("Text");
+function createVNode(type, props, children) {
+    const vnode = {
+        type,
+        props,
+        children,
+        shapeFlag: getShapeFlag(type),
+        el: null,
+    };
+    // children
+    if (typeof children === "string") {
+        vnode.shapeFlag = vnode.shapeFlag | 4 /* TEXT_CHILDREN */;
+    }
+    else if (Array.isArray(children)) {
+        vnode.shapeFlag = vnode.shapeFlag | 8 /* ARRAY_CHILDREN */;
+    }
+    // 组件 + children object
+    if (vnode.shapeFlag & 2 /* STATEFUL_COMPONENT */) {
+        if (typeof children === "object") {
+            vnode.shapeFlag |= 16 /* SLOT_CHILDREN */;
+        }
+    }
+    return vnode;
+}
+function createTextVNode(text) {
+    return createVNode(Text, {}, text);
+}
+function getShapeFlag(type) {
+    return typeof type === "string" ? 1 /* ELEMENT */ : 2 /* STATEFUL_COMPONENT */;
+}
+
+function h(type, props, children) {
+    return createVNode(type, props, children);
+}
+
+function renderSlots(slots, name, props) {
+    const slot = slots[name];
+    if (slot) {
+        // function
+        if (typeof slot === "function") {
+            return createVNode(Fragment, {}, slot(props));
+        }
+    }
+}
+
 const extend = Object.assign;
 const isObject = (val) => {
     return val !== null && typeof val === "object";
@@ -214,164 +260,6 @@ function setCurrentInstance(instance) {
     currentInstance = instance;
 }
 
-const Fragment = Symbol("Flagment");
-const Text = Symbol("Text");
-function createVNode(type, props, children) {
-    const vnode = {
-        type,
-        props,
-        children,
-        shapeFlag: getShapeFlag(type),
-        el: null,
-    };
-    // children
-    if (typeof children === "string") {
-        vnode.shapeFlag = vnode.shapeFlag | 4 /* TEXT_CHILDREN */;
-    }
-    else if (Array.isArray(children)) {
-        vnode.shapeFlag = vnode.shapeFlag | 8 /* ARRAY_CHILDREN */;
-    }
-    // 组件 + children object
-    if (vnode.shapeFlag & 2 /* STATEFUL_COMPONENT */) {
-        if (typeof children === "object") {
-            vnode.shapeFlag |= 16 /* SLOT_CHILDREN */;
-        }
-    }
-    return vnode;
-}
-function createTextVNode(text) {
-    return createVNode(Text, {}, text);
-}
-function getShapeFlag(type) {
-    return typeof type === "string" ? 1 /* ELEMENT */ : 2 /* STATEFUL_COMPONENT */;
-}
-
-function render(vnode, container) {
-    //patch
-    patch(vnode, container, null);
-}
-function patch(vnode, container, parentComponent) {
-    // TODO 判断一下是不是element类型
-    // 如果是一个element, 那个就应该处理一个element
-    // 思考：如何去区分是element类型还是component类型
-    // shapeFlags
-    console.log(vnode.type);
-    const { type, shapeFlag } = vnode;
-    // Fragment -> 只渲染 children
-    switch (type) {
-        case Fragment:
-            processFlagment(vnode, container, parentComponent);
-            break;
-        case Text:
-            processText(vnode, container);
-            break;
-        default:
-            if (shapeFlag & 1 /* ELEMENT */) {
-                //去处理元素
-                processElement(vnode, container, parentComponent);
-            }
-            else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
-                // 去处理组件
-                processComponent(vnode, container, parentComponent);
-            }
-            break;
-    }
-}
-function processFlagment(vnode, container, parentComponent) {
-    mountChildren(vnode, container, parentComponent);
-}
-function processComponent(vnode, container, parentComponent) {
-    //挂载组件
-    mountComponent(vnode, container, parentComponent);
-}
-function mountComponent(initialVNode, container, parentComponent) {
-    const instance = createComponentInstance(initialVNode, parentComponent);
-    setupComponent(instance);
-    setupRenderEffect(instance, initialVNode, container);
-}
-function setupRenderEffect(instance, initialVNode, container) {
-    const { proxy } = instance;
-    // subTree 就是vnode
-    const subTree = instance.render.call(proxy);
-    // initialVNode -> patch
-    // initialVNode -> element -> mountElement
-    patch(subTree, container, instance);
-    // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
-    // element -> mount
-    // 
-    // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
-    // 这里的subTree.el就是mountElement()里面的vnode.el
-    // 此时，subTree.el已经是创建出的真实DOM节点了
-    initialVNode.el = subTree.el;
-}
-function processElement(vnode, container, parentComponent) {
-    //挂载元素
-    mountElement(vnode, container, parentComponent);
-}
-function mountElement(vnode, container, parentComponent) {
-    const { type, props, children, shapeFlag } = vnode;
-    // vnode -> element -> div
-    // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
-    const el = (vnode.el = document.createElement(type));
-    if (shapeFlag & 4 /* TEXT_CHILDREN */) {
-        el.textContent = children;
-    }
-    else if (shapeFlag & 8 /* ARRAY_CHILDREN */) {
-        mountChildren(vnode, el, parentComponent);
-    }
-    // props
-    for (const key in props) {
-        const val = props[key];
-        console.log(key);
-        // 从具体到通用的逻辑抽象， 具体事件click -> 通用事件
-        const isOn = (key) => /^on[A-Z]/.test(key);
-        if (isOn(key)) {
-            const event = key.slice(2).toLowerCase();
-            el.addEventListener(event, val);
-        }
-        else {
-            el.setAttribute(key, val);
-        }
-    }
-    container.append(el);
-}
-function mountChildren(vnode, container, parentComponent) {
-    vnode.children.forEach(v => {
-        patch(v, container, parentComponent);
-    });
-}
-function processText(vnode, container) {
-    const { children } = vnode;
-    const textNode = (vnode.el = document.createTextNode(children));
-    container.append(textNode);
-}
-
-function createApp(rootComponent) {
-    return {
-        mount(rootContainer) {
-            // 先转换成虚拟节点vnode
-            // component -> vnode
-            // 所有的逻辑操作都会基于vnode做处理
-            const vnode = createVNode(rootComponent);
-            render(vnode, rootContainer);
-        }
-    };
-}
-
-function h(type, props, children) {
-    return createVNode(type, props, children);
-}
-
-function renderSlots(slots, name, props) {
-    const slot = slots[name];
-    if (slot) {
-        // function
-        if (typeof slot === "function") {
-            return createVNode(Fragment, {}, slot(props));
-        }
-    }
-}
-
 function provide(key, value) {
     // 存
     // key value
@@ -404,7 +292,149 @@ function inject(key, defaultValue) {
     }
 }
 
+function createAppAPI(render) {
+    return function createApp(rootComponent) {
+        return {
+            mount(rootContainer) {
+                // 先转换成虚拟节点vnode
+                // component -> vnode
+                // 所有的逻辑操作都会基于vnode做处理
+                const vnode = createVNode(rootComponent);
+                render(vnode, rootContainer);
+            }
+        };
+    };
+}
+
+function createRenderer(options) {
+    const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options;
+    function render(vnode, container) {
+        //patch
+        patch(vnode, container, null);
+    }
+    function patch(vnode, container, parentComponent) {
+        // TODO 判断一下是不是element类型
+        // 如果是一个element, 那个就应该处理一个element
+        // 思考：如何去区分是element类型还是component类型
+        // shapeFlags
+        console.log(vnode.type);
+        const { type, shapeFlag } = vnode;
+        // Fragment -> 只渲染 children
+        switch (type) {
+            case Fragment:
+                processFlagment(vnode, container, parentComponent);
+                break;
+            case Text:
+                processText(vnode, container);
+                break;
+            default:
+                if (shapeFlag & 1 /* ELEMENT */) {
+                    //去处理元素
+                    processElement(vnode, container, parentComponent);
+                }
+                else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
+                    // 去处理组件
+                    processComponent(vnode, container, parentComponent);
+                }
+                break;
+        }
+    }
+    function processFlagment(vnode, container, parentComponent) {
+        mountChildren(vnode, container, parentComponent);
+    }
+    function processComponent(vnode, container, parentComponent) {
+        //挂载组件
+        mountComponent(vnode, container, parentComponent);
+    }
+    function mountComponent(initialVNode, container, parentComponent) {
+        const instance = createComponentInstance(initialVNode, parentComponent);
+        setupComponent(instance);
+        setupRenderEffect(instance, initialVNode, container);
+    }
+    function setupRenderEffect(instance, initialVNode, container) {
+        const { proxy } = instance;
+        // subTree 就是vnode
+        const subTree = instance.render.call(proxy);
+        // initialVNode -> patch
+        // initialVNode -> element -> mountElement
+        patch(subTree, container, instance);
+        // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
+        // element -> mount
+        //
+        // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
+        // 这里的subTree.el就是mountElement()里面的vnode.el
+        // 此时，subTree.el已经是创建出的真实DOM节点了
+        initialVNode.el = subTree.el;
+    }
+    function processElement(vnode, container, parentComponent) {
+        //挂载元素
+        mountElement(vnode, container, parentComponent);
+    }
+    function mountElement(vnode, container, parentComponent) {
+        const { props, children, shapeFlag } = vnode;
+        // vnode -> element -> div
+        // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
+        const el = (vnode.el = hostCreateElement(vnode.type));
+        if (shapeFlag & 4 /* TEXT_CHILDREN */) {
+            el.textContent = children;
+        }
+        else if (shapeFlag & 8 /* ARRAY_CHILDREN */) {
+            mountChildren(vnode, el, parentComponent);
+        }
+        // props
+        for (const key in props) {
+            const val = props[key];
+            console.log(key);
+            hostPatchProp(el, key, val);
+        }
+        // container.append(el);
+        hostInsert(el, container);
+    }
+    function mountChildren(vnode, container, parentComponent) {
+        vnode.children.forEach((v) => {
+            patch(v, container, parentComponent);
+        });
+    }
+    function processText(vnode, container) {
+        const { children } = vnode;
+        const textNode = (vnode.el = document.createTextNode(children));
+        container.append(textNode);
+    }
+    return {
+        createApp: createAppAPI(render)
+    };
+}
+
+function createElement(type) {
+    console.log("createElement------");
+    return document.createElement(type);
+}
+function patchProp(el, key, val) {
+    console.log("patchProp------");
+    const isOn = (key) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
+        const event = key.slice(2).toLowerCase();
+        el.addEventListener(event, val);
+    }
+    else {
+        el.setAttribute(key, val);
+    }
+}
+function insert(el, parent) {
+    console.log("insert------");
+    parent.append(el);
+}
+const renderer = createRenderer({
+    createElement,
+    patchProp,
+    insert
+});
+function createApp(...args) {
+    return renderer.createApp(...args);
+}
+
 exports.createApp = createApp;
+exports.createRenderer = createRenderer;
 exports.createTextVNode = createTextVNode;
 exports.getCurrentInstance = getCurrentInstance;
 exports.h = h;

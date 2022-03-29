@@ -38,7 +38,7 @@
 - [x] 29-实现 Fragment 和 Text 类型节点(https://www.wolai.com/cuixiaorui/rQpih2Gb1gfw93ECnQzvRF)
 - [x] 30-实现 getCurrentInstance(https://www.wolai.com/cuixiaorui/5aVXno4MnPrYJeS172YJWE)
 - [x] 31-实现 provide-inject 功能(https://www.wolai.com/cuixiaorui/wi47AmRck7wBduZVbSZFfH)
-- [ ] 32-实现自定义渲染器 custom renderer(https://www.wolai.com/cuixiaorui/pNB836Crjs6MCMWvPwNrGh)
+- [x] 32-实现自定义渲染器 custom renderer(https://www.wolai.com/cuixiaorui/pNB836Crjs6MCMWvPwNrGh)
 
 ### **runtime-core 更新**
 
