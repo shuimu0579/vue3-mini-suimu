@@ -52,6 +52,9 @@ const extend = Object.assign;
 const isObject = (val) => {
     return val !== null && typeof val === "object";
 };
+const hasChanged = (newValue, val) => {
+    return !Object.is(newValue, val);
+};
 const hasOwn = (val, key) => Object.prototype.hasOwnProperty.call(val, key);
 const capitalize = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -65,7 +68,68 @@ const camelize = (str) => {
     });
 };
 
+let activeEffect; //记录当前ReactiveEffect的实例对象
+let shouldTrack;
+class ReactiveEffect {
+    constructor(fn, scheduler) {
+        this.scheduler = scheduler;
+        this.deps = [];
+        this.active = true;
+        this._fn = fn;
+    }
+    run() {
+        if (!this.active) {
+            return this._fn();
+        }
+        shouldTrack = true;
+        activeEffect = this;
+        const result = this._fn();
+        // reset
+        shouldTrack = false;
+        return result;
+    }
+    stop() {
+        if (this.active) {
+            cleanupEffect(this);
+            if (this.onStop) {
+                this.onStop();
+            }
+            this.active = false;
+        }
+    }
+}
+function cleanupEffect(effect) {
+    effect.deps.forEach((dep) => {
+        dep.delete(effect);
+    });
+    effect.deps.length = 0;
+}
 const targetMap = new Map();
+function track(target, key) {
+    if (!isTracking())
+        return;
+    // targetMap(target -> depsMap(key -> dep)), 
+    // 其中targetMap建立target和depsMap的关系
+    // depsMap建立key和dep之间的关系
+    //dep是一个数组，其中包含了多个fn(effect函数调用时候的传参)
+    let depsMap = targetMap.get(target);
+    if (!depsMap) {
+        depsMap = new Map();
+        targetMap.set(target, depsMap);
+    }
+    let dep = depsMap.get(key);
+    if (!dep) {
+        dep = new Set();
+        depsMap.set(key, dep);
+    }
+    trackEffects(dep);
+}
+function trackEffects(dep) {
+    if (dep.has(activeEffect))
+        return;
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+}
 function trigger(target, key) {
     let depsMap = targetMap.get(target);
     let dep = depsMap.get(key);
@@ -80,6 +144,19 @@ function triggerEffects(dep) {
             effect.run();
         }
     }
+}
+function effect(fn, options = {}) {
+    const _effect = new ReactiveEffect(fn, options.scheduler);
+    //extend 公共方法
+    extend(_effect, options);
+    // console.log('_effect',_effect)
+    _effect.run();
+    const runner = _effect.run.bind(_effect);
+    runner.effect = _effect;
+    return runner;
+}
+function isTracking() {
+    return shouldTrack && activeEffect !== undefined;
 }
 
 const get = createGetter();
@@ -102,6 +179,9 @@ function createGetter(isReadonly = false, shallow = false) {
         // 看看res是不是object
         if (isObject(res)) {
             return isReadonly ? readonly(res) : reactive(res);
+        }
+        if (!isReadonly) {
+            track(target, key);
         }
         return res;
     };
@@ -144,6 +224,73 @@ function createReactiveObject(raw, baseHandlers) {
         return raw;
     }
     return new Proxy(raw, baseHandlers);
+}
+
+class RefImpl {
+    constructor(value) {
+        this.__v_isRef = true;
+        this._rawValue = value;
+        // value -> reactive
+        // 1. 看看value是不是对象
+        this._value = convert(value);
+        this.dep = new Set();
+    }
+    get value() {
+        trackRefValue(this);
+        return this._value;
+    }
+    set value(newValue) {
+        //newValue -> this._value
+        if (hasChanged(newValue, this._rawValue)) {
+            this._rawValue = newValue;
+            //一定先去修改了value的值
+            this._value = convert(newValue);
+            triggerEffects(this.dep);
+        }
+    }
+}
+function convert(value) {
+    return isObject(value) ? reactive(value) : value;
+}
+function trackRefValue(ref) {
+    if (isTracking()) {
+        trackEffects(ref.dep);
+    }
+}
+function ref(value) {
+    return new RefImpl(value);
+}
+function isRef(ref) {
+    return !!ref.__v_isRef;
+}
+function unRef(ref) {
+    // 看看是不是 ref -> ref.value
+    // ref
+    return isRef(ref) ? ref.value : ref;
+}
+// 在template里面有用，不用在template里面 .value来获取值了
+function proxyRefs(objectWithRefs) {
+    return new Proxy(objectWithRefs, {
+        get(target, key) {
+            // get -> age(ref) 那么就给他返回 .value
+            // not ref -> 直接返回基本类型值
+            return unRef(Reflect.get(target, key));
+        },
+        set(target, key, value) {
+            // 这里是特例
+            if (isRef(target[key]) && !isRef(value)) {
+                return target[key].value = value;
+            }
+            else {
+                // 这里是常见情况
+                return Reflect.set(target, key, value);
+            }
+        }
+    });
+}
+
+function add(a, b) {
+    return a + b;
 }
 
 function emit(instance, event, ...args) {
@@ -207,7 +354,7 @@ function normalizeSlotValue(value) {
 }
 
 function createComponentInstance(vnode, parent) {
-    console.log("currentComponentInstanceParent", parent);
+    // console.log("currentComponentInstanceParent", parent)
     const component = {
         vnode,
         type: vnode.type,
@@ -216,6 +363,8 @@ function createComponentInstance(vnode, parent) {
         slots: {},
         provides: parent ? parent.provides : {},
         parent,
+        isMounted: false,
+        subTree: {},
         emit: () => { }
     };
     component.emit = emit.bind(null, component);
@@ -244,7 +393,7 @@ function handleSetupResult(instance, setupResult) {
     // setupResult 为 function 或者 Object
     // TODO function
     if (typeof setupResult === 'object') {
-        instance.setupState = setupResult;
+        instance.setupState = proxyRefs(setupResult);
     }
     finishComponentSetup(instance);
 }
@@ -308,43 +457,45 @@ function createAppAPI(render) {
 
 function createRenderer(options) {
     const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options;
-    function render(vnode, container) {
+    function render(n2, container) {
         //patch
-        patch(vnode, container, null);
+        patch(null, n2, container, null);
     }
-    function patch(vnode, container, parentComponent) {
+    // n1 -> 老的
+    // n2 -> 新的
+    function patch(n1, n2, container, parentComponent) {
         // TODO 判断一下是不是element类型
         // 如果是一个element, 那个就应该处理一个element
         // 思考：如何去区分是element类型还是component类型
         // shapeFlags
-        console.log(vnode.type);
-        const { type, shapeFlag } = vnode;
+        // console.log(n2.type)
+        const { type, shapeFlag } = n2;
         // Fragment -> 只渲染 children
         switch (type) {
             case Fragment:
-                processFlagment(vnode, container, parentComponent);
+                processFlagment(n1, n2, container, parentComponent);
                 break;
             case Text:
-                processText(vnode, container);
+                processText(n1, n2, container);
                 break;
             default:
                 if (shapeFlag & 1 /* ELEMENT */) {
                     //去处理元素
-                    processElement(vnode, container, parentComponent);
+                    processElement(n1, n2, container, parentComponent);
                 }
                 else if (shapeFlag & 2 /* STATEFUL_COMPONENT */) {
                     // 去处理组件
-                    processComponent(vnode, container, parentComponent);
+                    processComponent(n1, n2, container, parentComponent);
                 }
                 break;
         }
     }
-    function processFlagment(vnode, container, parentComponent) {
-        mountChildren(vnode, container, parentComponent);
+    function processFlagment(n1, n2, container, parentComponent) {
+        mountChildren(n2, container, parentComponent);
     }
-    function processComponent(vnode, container, parentComponent) {
+    function processComponent(n1, n2, container, parentComponent) {
         //挂载组件
-        mountComponent(vnode, container, parentComponent);
+        mountComponent(n2, container, parentComponent);
     }
     function mountComponent(initialVNode, container, parentComponent) {
         const instance = createComponentInstance(initialVNode, parentComponent);
@@ -352,52 +503,81 @@ function createRenderer(options) {
         setupRenderEffect(instance, initialVNode, container);
     }
     function setupRenderEffect(instance, initialVNode, container) {
-        const { proxy } = instance;
-        // subTree 就是vnode
-        const subTree = instance.render.call(proxy);
-        // initialVNode -> patch
-        // initialVNode -> element -> mountElement
-        patch(subTree, container, instance);
-        // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
-        // element -> mount
-        //
-        // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
-        // 这里的subTree.el就是mountElement()里面的vnode.el
-        // 此时，subTree.el已经是创建出的真实DOM节点了
-        initialVNode.el = subTree.el;
+        effect(() => {
+            if (!instance.isMounted) {
+                console.log('init');
+                const { proxy } = instance;
+                // subTree 就是vnode
+                const subTree = (instance.subTree = instance.render.call(proxy));
+                console.log('subTree', subTree);
+                // initialVNode -> patch
+                // initialVNode -> element -> mountElement
+                patch(null, subTree, container, instance);
+                // this.$el 实现的关键点：就是我们在什么时机可以获取到在初始化完成之后的el
+                // element -> mount
+                //
+                // 此处的initialVNode是当前组件(比如App.vue组件)的虚拟节点。
+                // 这里的subTree.el就是mountElement()里面的vnode.el
+                // 此时，subTree.el已经是创建出的真实DOM节点了
+                initialVNode.el = subTree.el;
+                instance.isMounted = true;
+            }
+            else {
+                console.log("update");
+                const { proxy } = instance;
+                // subTree 就是vnode
+                const subTree = instance.render.call(proxy);
+                const prevSubTree = instance.subTree;
+                instance.subTree = subTree;
+                patch(prevSubTree, subTree, container, instance);
+            }
+        });
     }
-    function processElement(vnode, container, parentComponent) {
-        //挂载元素
-        mountElement(vnode, container, parentComponent);
+    function processElement(n1, n2, container, parentComponent) {
+        if (!n1) {
+            //init 挂载元素
+            mountElement(n2, container, parentComponent);
+        }
+        else {
+            //update 更新元素
+            patchElement();
+        }
     }
-    function mountElement(vnode, container, parentComponent) {
-        const { props, children, shapeFlag } = vnode;
-        // vnode -> element -> div
-        // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
-        const el = (vnode.el = hostCreateElement(vnode.type));
+    function patchElement(n1, n2, container) {
+        console.log('patchElement');
+        console.log('n1');
+        console.log('n2');
+        // props
+        // children
+    }
+    function mountElement(n2, container, parentComponent) {
+        const { props, children, shapeFlag } = n2;
+        // n2 -> element -> div
+        // 这里的n2.el就是setupRenderEffect()里面的subTree.el
+        const el = (n2.el = hostCreateElement(n2.type));
         if (shapeFlag & 4 /* TEXT_CHILDREN */) {
             el.textContent = children;
         }
         else if (shapeFlag & 8 /* ARRAY_CHILDREN */) {
-            mountChildren(vnode, el, parentComponent);
+            mountChildren(n2, el, parentComponent);
         }
         // props
         for (const key in props) {
             const val = props[key];
-            console.log(key);
+            // console.log(key)  
             hostPatchProp(el, key, val);
         }
         // container.append(el);
         hostInsert(el, container);
     }
-    function mountChildren(vnode, container, parentComponent) {
-        vnode.children.forEach((v) => {
-            patch(v, container, parentComponent);
+    function mountChildren(n2, container, parentComponent) {
+        n2.children.forEach((v) => {
+            patch(null, v, container, parentComponent);
         });
     }
-    function processText(vnode, container) {
-        const { children } = vnode;
-        const textNode = (vnode.el = document.createTextNode(children));
+    function processText(n1, n2, container) {
+        const { children } = n2;
+        const textNode = (n2.el = document.createTextNode(children));
         container.append(textNode);
     }
     return {
@@ -406,11 +586,11 @@ function createRenderer(options) {
 }
 
 function createElement(type) {
-    console.log("createElement------");
+    // console.log("createElement------")
     return document.createElement(type);
 }
 function patchProp(el, key, val) {
-    console.log("patchProp------");
+    // console.log("patchProp------")
     const isOn = (key) => /^on[A-Z]/.test(key);
     if (isOn(key)) {
         const event = key.slice(2).toLowerCase();
@@ -421,7 +601,7 @@ function patchProp(el, key, val) {
     }
 }
 function insert(el, parent) {
-    console.log("insert------");
+    // console.log("insert------")
     parent.append(el);
 }
 const renderer = createRenderer({
@@ -433,6 +613,7 @@ function createApp(...args) {
     return renderer.createApp(...args);
 }
 
+exports.add = add;
 exports.createApp = createApp;
 exports.createRenderer = createRenderer;
 exports.createTextVNode = createTextVNode;
@@ -440,4 +621,6 @@ exports.getCurrentInstance = getCurrentInstance;
 exports.h = h;
 exports.inject = inject;
 exports.provide = provide;
+exports.proxyRefs = proxyRefs;
+exports.ref = ref;
 exports.renderSlots = renderSlots;

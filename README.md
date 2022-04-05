@@ -42,7 +42,7 @@
 
 ### **runtime-core 更新**
 
-- [ ] 33-更新 element 流程搭建(https://www.wolai.com/cuixiaorui/xwgF2KkpFaDNDs9WaUv7zU)
+- [x] 33-更新 element 流程搭建(https://www.wolai.com/cuixiaorui/xwgF2KkpFaDNDs9WaUv7zU)
 - [ ] 34-更新 element 的 props(https://www.wolai.com/cuixiaorui/bgZmbJvcLpkxUEuYWnJbXA)
 - [ ] 35-更新 element 的 children(https://www.wolai.com/cuixiaorui/nUhjPAGZnw6VkHijUhoszp)
 - [ ] 36-更新 element 的 children - 双端对比 diff 算法 （1）(https://www.wolai.com/cuixiaorui/rTkUAEBvoUoyRYmXSqYgJh)
@@ -61,6 +61,10 @@
 - [ ] 46-实现解析三种联合类型(https://www.wolai.com/cuixiaorui/9vFkrjs2MWa9ocaQM6LcEA)
 - [ ] 47-parse 的实现原理&有限状态机(https://www.wolai.com/cuixiaorui/tixMXMjFrabriT2EypTbAE)
 - [ ] 48-实现 transform 功能(https://www.wolai.com/cuixiaorui/iWTPNf67tfM6RpBrFn1awg)
+- [ ] 49-实现代码生成 string 类型(https://www.wolai.com/cuixiaorui/u2PbH192xGKCBHCrAdFk2e)
+- [ ] 50-实现代码生成插值类型(https://www.wolai.com/cuixiaorui/73zPZQNyhuAfPBnVkMSaGZ)
+- [ ] 51-实现代码生成三种联合类型(https://www.wolai.com/cuixiaorui/qq6dS7cYU2w6McSBRSVA9Y)
+- [ ] 52-实现编译 template 成 render 函数（大结局）(https://www.wolai.com/cuixiaorui/dmS3GKXVnfaMh5EodPXS38)
 
 ### vue3 源码实战课相关资料
 
