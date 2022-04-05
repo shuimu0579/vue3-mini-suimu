@@ -1,4 +1,5 @@
 import { effect } from '../reactivity/effect'
+import { EMPTY_OBJ } from '../shared'
 import { ShapeFlags } from '../shared/ShapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
@@ -110,37 +111,61 @@ export function createRenderer(options) {
     console.log('patchElement');
     console.log('n1');
     console.log('n2');
+    
+    const oldProps = n1.props || EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
 
-    // props
-    // children
+    const el = (n2.el = n1.el);
+    patchProps(el, oldProps, newProps);
+  } 
+
+  function patchProps(el, oldProps, newProps){
+    if(oldProps !== newProps){
+      for (const key in newProps) {
+        const prevProp = oldProps[key]
+        const nextProp = newProps[key]
+  
+        if(prevProp !== nextProp){
+          hostPatchProp(el, key, prevProp, nextProp)
+        }
+      }
+
+      if(oldProps !== EMPTY_OBJ){
+        for (const key in oldProps) {
+          if(!(key in newProps)){
+            hostPatchProp(el, key, oldProps[key], null)
+          }
+        }
+      }
+    }
   }
 
-  function mountElement(n2, container, parentComponent) {
-    const { props, children, shapeFlag } = n2
+  function mountElement(vnode, container, parentComponent) {
+    const { props, children, shapeFlag } = vnode
 
-    // n2 -> element -> div
-    // 这里的n2.el就是setupRenderEffect()里面的subTree.el
-    const el = (n2.el = hostCreateElement(n2.type))
+    // vnode -> element -> div
+    // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
+    const el = (vnode.el = hostCreateElement(vnode.type))
 
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(n2, el, parentComponent)
+      mountChildren(vnode, el, parentComponent)
     }
 
     // props
     for (const key in props) {
       const val = props[key]
       // console.log(key)  
-      hostPatchProp(el, key, val)
+      hostPatchProp(el, key, null, val)
     }
 
     // container.append(el);
     hostInsert(el, container)
   }
 
-  function mountChildren(n2, container, parentComponent) {
-    n2.children.forEach((v) => {
+  function mountChildren(vnode, container, parentComponent) {
+    vnode.children.forEach((v) => {
       patch(null, v, container, parentComponent)
     })
   }

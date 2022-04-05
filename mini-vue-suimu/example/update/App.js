@@ -7,16 +7,37 @@ export const App = {
         const onClick = () => {
             count.value++;
         }
+        const props = ref({
+            foo: "foo",
+            bar: "bar"
+        });
+        const onChangePropsDemo1 = () => {
+            props.value.foo = "new-foo"
+        }
+        const onChangePropsDemo2 = () => {
+            props.value.foo = undefined
+        }
+        const onChangePropsDemo3 = () => {
+            props.value = {
+                foo: "foo"
+            }
+        }
         return {
             count,
-            onClick
+            props,
+            onClick,
+            onChangePropsDemo1,
+            onChangePropsDemo2,
+            onChangePropsDemo3,
         }
     },
     render(){
+        console.log('this', this)
         return h(
             'div', 
             {
-                id: "root"
+                id: "root",
+                ...this.props,
             }, 
             [
                 h("div", {}, "count," + this.count), //依赖收集
@@ -24,7 +45,22 @@ export const App = {
                     onClick:this.onClick
                 },
                 "click"
-                )
+                ),
+                h("botton", {
+                    onClick:this.onChangePropsDemo1
+                },
+                "changeProps - 值改变了 - 修改"
+                ),
+                h("botton", {
+                    onClick:this.onChangePropsDemo2
+                },
+                "changeProps - 值变成了undefined - 删除"
+                ),
+                h("botton", {
+                    onClick:this.onChangePropsDemo3
+                },
+                "changeProps - key在新的里面没有了 - 删除"
+                ),
             ]
         );
     }

@@ -45,6 +45,7 @@ function renderSlots(slots, name, props) {
 }
 
 const extend = Object.assign;
+const EMPTY_OBJ = {};
 const isObject = (val) => {
     return val !== null && typeof val === "object";
 };
@@ -536,38 +537,58 @@ function createRenderer(options) {
         }
         else {
             //update 更新元素
-            patchElement();
+            patchElement(n1, n2);
         }
     }
     function patchElement(n1, n2, container) {
         console.log('patchElement');
         console.log('n1');
         console.log('n2');
-        // props
-        // children
+        const oldProps = n1.props || EMPTY_OBJ;
+        const newProps = n2.props || EMPTY_OBJ;
+        const el = (n2.el = n1.el);
+        patchProps(el, oldProps, newProps);
     }
-    function mountElement(n2, container, parentComponent) {
-        const { props, children, shapeFlag } = n2;
-        // n2 -> element -> div
-        // 这里的n2.el就是setupRenderEffect()里面的subTree.el
-        const el = (n2.el = hostCreateElement(n2.type));
+    function patchProps(el, oldProps, newProps) {
+        if (oldProps !== newProps) {
+            for (const key in newProps) {
+                const prevProp = oldProps[key];
+                const nextProp = newProps[key];
+                if (prevProp !== nextProp) {
+                    hostPatchProp(el, key, prevProp, nextProp);
+                }
+            }
+            if (oldProps !== EMPTY_OBJ) {
+                for (const key in oldProps) {
+                    if (!(key in newProps)) {
+                        hostPatchProp(el, key, oldProps[key], null);
+                    }
+                }
+            }
+        }
+    }
+    function mountElement(vnode, container, parentComponent) {
+        const { props, children, shapeFlag } = vnode;
+        // vnode -> element -> div
+        // 这里的vnode.el就是setupRenderEffect()里面的subTree.el
+        const el = (vnode.el = hostCreateElement(vnode.type));
         if (shapeFlag & 4 /* TEXT_CHILDREN */) {
             el.textContent = children;
         }
         else if (shapeFlag & 8 /* ARRAY_CHILDREN */) {
-            mountChildren(n2, el, parentComponent);
+            mountChildren(vnode, el, parentComponent);
         }
         // props
         for (const key in props) {
             const val = props[key];
             // console.log(key)  
-            hostPatchProp(el, key, val);
+            hostPatchProp(el, key, null, val);
         }
         // container.append(el);
         hostInsert(el, container);
     }
-    function mountChildren(n2, container, parentComponent) {
-        n2.children.forEach((v) => {
+    function mountChildren(vnode, container, parentComponent) {
+        vnode.children.forEach((v) => {
             patch(null, v, container, parentComponent);
         });
     }
@@ -585,15 +606,20 @@ function createElement(type) {
     // console.log("createElement------")
     return document.createElement(type);
 }
-function patchProp(el, key, val) {
+function patchProp(el, key, prevVal, nextVal) {
     // console.log("patchProp------")
     const isOn = (key) => /^on[A-Z]/.test(key);
     if (isOn(key)) {
         const event = key.slice(2).toLowerCase();
-        el.addEventListener(event, val);
+        el.addEventListener(event, nextVal);
     }
     else {
-        el.setAttribute(key, val);
+        if (nextVal === undefined || nextVal === null) {
+            el.removeAttribute(key);
+        }
+        else {
+            el.setAttribute(key, nextVal);
+        }
     }
 }
 function insert(el, parent) {
