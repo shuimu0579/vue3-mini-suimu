@@ -32,7 +32,6 @@ export const App = {
         }
     },
     render(){
-        console.log('this', this)
         return h(
             'div', 
             {
