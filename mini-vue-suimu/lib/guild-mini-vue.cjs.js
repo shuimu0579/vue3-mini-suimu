@@ -651,12 +651,50 @@ function createRenderer(options) {
                 hostRemove(c1[i].el);
                 i++;
             }
-            // 乱序的部分
-            //1.创建新的
-            //2.删除老的
-            //3.移动
+            // 中间对比--乱序的部分
+            //1.删除老的
+            //2.移动
+            //3.创建新的
         }
-        else ;
+        else {
+            let s1 = i;
+            let s2 = i;
+            const toBePatched = e2 - s2 + 1;
+            let patched = 0;
+            // c2中间部分建立映射表
+            const keyToNewIndexMap = new Map();
+            for (let i = s2; i <= e2; i++) {
+                const nextChild = c2[i];
+                keyToNewIndexMap.set(nextChild.key, i);
+            }
+            for (let i = s1; i <= e1; i++) {
+                const prevChild = c1[i];
+                if (patched >= toBePatched) {
+                    hostRemove(prevChild.el);
+                    continue;
+                }
+                let newIndex;
+                //null undefined
+                if (prevChild.key !== null) {
+                    newIndex = keyToNewIndexMap.get(prevChild.key);
+                }
+                else {
+                    for (let j = s2; j < e2; j++) {
+                        if (isSameVNodeType(prevChild, c2[j])) {
+                            newIndex = j;
+                            break;
+                        }
+                    }
+                }
+                if (newIndex === undefined) {
+                    hostRemove(prevChild.el);
+                }
+                else {
+                    patch(prevChild, c2[newIndex], container, parentComponent, null);
+                    patched++;
+                }
+            }
+        }
     }
     function isSameVNodeType(n1, n2) {
         // type

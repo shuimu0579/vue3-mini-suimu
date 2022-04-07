@@ -46,7 +46,7 @@
 - [x] 34-更新 element 的 props(https://www.wolai.com/cuixiaorui/bgZmbJvcLpkxUEuYWnJbXA)
 - [x] 35-更新 element 的 children(https://www.wolai.com/cuixiaorui/nUhjPAGZnw6VkHijUhoszp)
 - [x] 36-更新 element 的 children - 双端对比 diff 算法 （1）(https://www.wolai.com/cuixiaorui/rTkUAEBvoUoyRYmXSqYgJh)
-- [ ] 37-更新 element 的 children - 双端对比 diff 算法 （2）(https://www.wolai.com/cuixiaorui/wvSS2d2mAnEkgEUk1s3phk)
+- [x] 37-更新 element 的 children - 双端对比 diff 算法 （2）(https://www.wolai.com/cuixiaorui/wvSS2d2mAnEkgEUk1s3phk)
 - [ ] 38-更新 element 的 children - 双端对比 diff 算法 （3）(https://www.wolai.com/cuixiaorui/sKQToUaYg1PqqSviX3HH8Y)
 - [ ] 39-学习尤大解决 bug 的处理方式(https://www.wolai.com/cuixiaorui/53bqrdewhonhXEQhbbvMKc)
 - [ ] 40-实现组件更新功能(https://www.wolai.com/cuixiaorui/vufH9HJd8bARgQt4efk9aq)
