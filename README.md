@@ -54,7 +54,7 @@
 
 ### **compiler-core**
 
-- [ ] 42-编译模块概述(<https://www.wolai.com/cuixiaorui/bfiFZ6vw4Qata8YVYgkDVj>)
+- [x] 42-编译模块概述(<https://www.wolai.com/cuixiaorui/bfiFZ6vw4Qata8YVYgkDVj>)
 - [ ] 43-实现解析插值功能(<https://www.wolai.com/cuixiaorui/j26JU4icjcmsNud8YucuRo>)
 - [ ] 44-实现解析 element(<https://www.wolai.com/cuixiaorui/pmGS9y5FHLSrzPm54CYLAu>)
 - [ ] 45-实现解析 text 功能(<https://www.wolai.com/cuixiaorui/enpjs4iruLcP7zhrExXHfi>)
