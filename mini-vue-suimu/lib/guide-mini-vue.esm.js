@@ -467,6 +467,31 @@ function shouldUpdateComponent(preVNode, nextVNode) {
     }
 }
 
+const queue = [];
+const p = Promise.resolve();
+let isFlushPending = false;
+function nextTick(fn) {
+    return fn ? p.then(fn) : p;
+}
+function queueJobs(job) {
+    if (!queue.includes(job))
+        queue.push(job);
+    queueFlush();
+}
+function queueFlush() {
+    if (isFlushPending)
+        return;
+    isFlushPending = true;
+    nextTick(flushJobs);
+}
+function flushJobs() {
+    isFlushPending = false;
+    let job;
+    while ((job = queue.shift())) {
+        job && job();
+    }
+}
+
 function createRenderer(options) {
     const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = options;
     function render(n2, container) {
@@ -564,6 +589,12 @@ function createRenderer(options) {
                 const prevSubTree = instance.subTree;
                 instance.subTree = subTree;
                 patch(prevSubTree, subTree, container, instance, anchor);
+            }
+        }, {
+            scheduler() {
+                console.log("update - scheduler");
+                // 异步的视图更新
+                queueJobs(instance.update);
             }
         });
     }
@@ -925,4 +956,4 @@ function createApp(...args) {
     return renderer.createApp(...args);
 }
 
-export { add, createApp, createRenderer, createTextVNode, getCurrentInstance, h, inject, provide, proxyRefs, ref, renderSlots };
+export { add, createApp, createRenderer, createTextVNode, getCurrentInstance, h, inject, nextTick, provide, proxyRefs, ref, renderSlots };

@@ -50,7 +50,7 @@
 - [x] 38-更新 element 的 children - 双端对比 diff 算法 （3）(<https://www.wolai.com/cuixiaorui/sKQToUaYg1PqqSviX3HH8Y>)
 - [x] 39-学习尤大解决 bug 的处理方式(<https://www.wolai.com/cuixiaorui/53bqrdewhonhXEQhbbvMKc>)
 - [x] 40-实现组件更新功能(<https://www.wolai.com/cuixiaorui/vufH9HJd8bARgQt4efk9aq>)
-- [ ] 41-实现 nextTick 功能(<https://www.wolai.com/cuixiaorui/nAdCJ5pGkvnuYkDMYf1psU>)
+- [x] 41-实现 nextTick 功能(<https://www.wolai.com/cuixiaorui/nAdCJ5pGkvnuYkDMYf1psU>)
 
 ### **compiler-core**
 

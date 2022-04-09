@@ -5,6 +5,7 @@ import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
 import { Fragment, Text } from './vnode';
 import { shouldUpdateComponent } from './componentUpdateUtils'
+import { queueJobs } from './scheduler'
 
 export function createRenderer(options) {
 
@@ -116,6 +117,12 @@ export function createRenderer(options) {
         instance.subTree = subTree
 
         patch(prevSubTree, subTree, container, instance,anchor)
+      }
+    }, {
+      scheduler(){
+        console.log("update - scheduler");
+        // 异步的视图更新
+        queueJobs(instance.update);
       }
     })
   }
