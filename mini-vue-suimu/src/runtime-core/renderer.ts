@@ -3,7 +3,8 @@ import { EMPTY_OBJ } from '../shared'
 import { ShapeFlags } from '../shared/ShapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
-import { Fragment, Text } from './vnode'
+import { Fragment, Text } from './vnode';
+import { shouldUpdateComponent } from './componentUpdateUtils'
 
 export function createRenderer(options) {
 
@@ -51,19 +52,33 @@ export function createRenderer(options) {
   }
 
   function processComponent(n1, n2: any, container: any, parentComponent, anchor) {
-    //挂载组件
-    mountComponent(n2, container, parentComponent, anchor)
+    if(!n1){
+      //挂载组件
+      mountComponent(n2, container, parentComponent, anchor)
+    }else{
+      updateComponent(n1,n2);
+    }
+  }
+  function updateComponent(n1,n2){
+    const instance = (n2.component = n1.component);
+    if(shouldUpdateComponent(n1,n2)){
+      instance.next = n2;
+      instance.update();
+    }else{
+      n2.el = n1.el;
+      n2.vnode = n2;
+    }
   }
 
   function mountComponent(initialVNode: any, container, parentComponent, anchor) {
-    const instance = createComponentInstance(initialVNode, parentComponent)
+    const instance = (initialVNode.component = createComponentInstance(initialVNode, parentComponent))
 
     setupComponent(instance)
     setupRenderEffect(instance, initialVNode, container,anchor)
   }
 
   function setupRenderEffect(instance: any, initialVNode, container: any, anchor) {
-    effect(() => {
+    instance.update =  effect(() => {
       if(!instance.isMounted){
         console.log('init')
         const { proxy } = instance
@@ -87,6 +102,13 @@ export function createRenderer(options) {
         instance.isMounted = true;
       } else {
         console.log("update");
+        // 需要一个vnode
+        const {next, vnode} = instance;
+        if(next){
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
+
         const { proxy } = instance
         // subTree 就是vnode
         const subTree = instance.render.call(proxy)
@@ -97,6 +119,15 @@ export function createRenderer(options) {
       }
     })
   }
+
+  function updateComponentPreRender(instance, nextVNode){
+    instance.vnode = nextVNode;
+    instance.next = null;
+
+    instance.props = nextVNode.props;
+
+  }
+
   function processElement(n1, n2: any, container: any, parentComponent, anchor) {
     if(!n1){
       //init 挂载元素
@@ -427,3 +458,4 @@ function getSequence(arr: number[]): number[] {
   }
   return result;
 }
+

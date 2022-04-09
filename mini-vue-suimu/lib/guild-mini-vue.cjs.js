@@ -9,6 +9,7 @@ function createVNode(type, props, children) {
         type,
         props,
         children,
+        component: null,
         key: props && props.key,
         shapeFlag: getShapeFlag(type),
         el: null,
@@ -317,7 +318,8 @@ function initProps(instance, rawProps) {
 const publicPropertiesMap = {
     $el: (i) => i.vnode.el,
     // $slot
-    $slots: (i) => i.slots
+    $slots: (i) => i.slots,
+    $props: (i) => i.props,
 };
 const PublicInstanceProxyHandlers = {
     get({ _: instance }, key) {
@@ -360,6 +362,7 @@ function createComponentInstance(vnode, parent) {
     const component = {
         vnode,
         type: vnode.type,
+        next: null,
         setupState: {},
         props: {},
         slots: {},
@@ -457,6 +460,17 @@ function createAppAPI(render) {
     };
 }
 
+function shouldUpdateComponent(preVNode, nextVNode) {
+    const { props: prevProp } = preVNode;
+    const { props: nextProp } = nextVNode;
+    for (const key in nextProp) {
+        if (nextProp[key] !== prevProp[key]) {
+            return true;
+        }
+        return false;
+    }
+}
+
 function createRenderer(options) {
     const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = options;
     function render(n2, container) {
@@ -496,16 +510,32 @@ function createRenderer(options) {
         mountChildren(n2.children, container, parentComponent, anchor);
     }
     function processComponent(n1, n2, container, parentComponent, anchor) {
-        //挂载组件
-        mountComponent(n2, container, parentComponent, anchor);
+        if (!n1) {
+            //挂载组件
+            mountComponent(n2, container, parentComponent, anchor);
+        }
+        else {
+            updateComponent(n1, n2);
+        }
+    }
+    function updateComponent(n1, n2) {
+        const instance = (n2.component = n1.component);
+        if (shouldUpdateComponent(n1, n2)) {
+            instance.next = n2;
+            instance.update();
+        }
+        else {
+            n2.el = n1.el;
+            n2.vnode = n2;
+        }
     }
     function mountComponent(initialVNode, container, parentComponent, anchor) {
-        const instance = createComponentInstance(initialVNode, parentComponent);
+        const instance = (initialVNode.component = createComponentInstance(initialVNode, parentComponent));
         setupComponent(instance);
         setupRenderEffect(instance, initialVNode, container, anchor);
     }
     function setupRenderEffect(instance, initialVNode, container, anchor) {
-        effect(() => {
+        instance.update = effect(() => {
             if (!instance.isMounted) {
                 console.log('init');
                 const { proxy } = instance;
@@ -526,6 +556,12 @@ function createRenderer(options) {
             }
             else {
                 console.log("update");
+                // 需要一个vnode
+                const { next, vnode } = instance;
+                if (next) {
+                    next.el = vnode.el;
+                    updateComponentPreRender(instance, next);
+                }
                 const { proxy } = instance;
                 // subTree 就是vnode
                 const subTree = instance.render.call(proxy);
@@ -534,6 +570,11 @@ function createRenderer(options) {
                 patch(prevSubTree, subTree, container, instance, anchor);
             }
         });
+    }
+    function updateComponentPreRender(instance, nextVNode) {
+        instance.vnode = nextVNode;
+        instance.next = null;
+        instance.props = nextVNode.props;
     }
     function processElement(n1, n2, container, parentComponent, anchor) {
         if (!n1) {
