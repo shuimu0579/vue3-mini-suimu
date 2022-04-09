@@ -55,16 +55,16 @@
 ### **compiler-core**
 
 - [x] 42-编译模块概述(<https://www.wolai.com/cuixiaorui/bfiFZ6vw4Qata8YVYgkDVj>)
-- [ ] 43-实现解析插值功能(<https://www.wolai.com/cuixiaorui/j26JU4icjcmsNud8YucuRo>)
-- [ ] 44-实现解析 element(<https://www.wolai.com/cuixiaorui/pmGS9y5FHLSrzPm54CYLAu>)
-- [ ] 45-实现解析 text 功能(<https://www.wolai.com/cuixiaorui/enpjs4iruLcP7zhrExXHfi>)
-- [ ] 46-实现解析三种联合类型(<https://www.wolai.com/cuixiaorui/9vFkrjs2MWa9ocaQM6LcEA>)
-- [ ] 47-parse 的实现原理&有限状态机(<https://www.wolai.com/cuixiaorui/tixMXMjFrabriT2EypTbAE>)
-- [ ] 48-实现 transform 功能(<https://www.wolai.com/cuixiaorui/iWTPNf67tfM6RpBrFn1awg>)
-- [ ] 49-实现代码生成 string 类型(<https://www.wolai.com/cuixiaorui/u2PbH192xGKCBHCrAdFk2e>)
-- [ ] 50-实现代码生成插值类型(<https://www.wolai.com/cuixiaorui/73zPZQNyhuAfPBnVkMSaGZ>)
-- [ ] 51-实现代码生成三种联合类型(<https://www.wolai.com/cuixiaorui/qq6dS7cYU2w6McSBRSVA9Y>)
-- [ ] 52-实现编译 template 成 render 函数（大结局）(<https://www.wolai.com/cuixiaorui/dmS3GKXVnfaMh5EodPXS38>)
+- [ ] 43-实现解析插值功能(<https://www.wolai.com/cuixiaorui/j26JU4icjcmsNud8YucuRo>)(19m30s)
+- [ ] 44-实现解析 element(<https://www.wolai.com/cuixiaorui/pmGS9y5FHLSrzPm54CYLAu>)(10m45s)
+- [ ] 45-实现解析 text 功能(<https://www.wolai.com/cuixiaorui/enpjs4iruLcP7zhrExXHfi>)(9m27s)
+- [ ] 46-实现解析三种联合类型(<https://www.wolai.com/cuixiaorui/9vFkrjs2MWa9ocaQM6LcEA>)(39m49s)
+- [ ] 47-parse 的实现原理&有限状态机(<https://www.wolai.com/cuixiaorui/tixMXMjFrabriT2EypTbAE>)(19m15s)
+- [ ] 48-实现 transform 功能(<https://www.wolai.com/cuixiaorui/iWTPNf67tfM6RpBrFn1awg>)(19m15s)
+- [ ] 49-实现代码生成 string 类型(<https://www.wolai.com/cuixiaorui/u2PbH192xGKCBHCrAdFk2e>)(14m34s)
+- [ ] 50-实现代码生成插值类型(<https://www.wolai.com/cuixiaorui/73zPZQNyhuAfPBnVkMSaGZ>)(30m20s)
+- [ ] 51-实现代码生成三种联合类型(<https://www.wolai.com/cuixiaorui/qq6dS7cYU2w6McSBRSVA9Y>)(43m05s)
+- [ ] 52-实现编译 template 成 render 函数（大结局）(<https://www.wolai.com/cuixiaorui/dmS3GKXVnfaMh5EodPXS38>)(20m33s)
 
 ### vue3 源码实战课相关资料
 
