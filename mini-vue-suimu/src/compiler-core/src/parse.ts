@@ -23,6 +23,10 @@ function parseChildren(context){
     }
   }
 
+  if(!node){
+    node = parseText(context);
+  }
+
   nodes.push(node);
   return nodes
 }
@@ -37,9 +41,9 @@ function parseInterpolation(context){
   console.log('closeIndex', closeIndex);
   advanceBy(context, openDelimiter.length);
   const rawContentLength = closeIndex - openDelimiter.length; 
-  const rawContent = context.source.slice(0, rawContentLength);
+  const rawContent = parseTextData(context, rawContentLength);
   const content = rawContent.trim();
-  advanceBy(context, rawContentLength + closeDelimiter.length);
+  advanceBy(context, closeDelimiter.length);
   return {
     type: NodeTypes.INTERPOLATION,
     content:{
@@ -79,12 +83,30 @@ function parseTag(context:any, type:TagType){
   const tag = match[1]
   // 2.删除处理完成的代码
   advanceBy(context, match[0].length);
-  console.log(context.source)
+  console.log('parseTag',context.source)
   advanceBy(context, 1);
-  
+
   if(type === TagType.End) return;
   return {
     type:NodeTypes.ELEMENT,
     tag
   }
+}
+
+function parseText(context: any): any {
+  const content = parseTextData(context, context.source.length);
+  console.log(context.source.length);
+  return {
+    type: NodeTypes.TEXT,
+    content
+  }
+}
+
+function parseTextData(context, length){
+  // 1.获取content
+  const content = context.source.slice(0, length);
+  // 2.advanceBy推进
+  advanceBy(context,length);
+  console.log('parseText',context.source)
+  return content
 }
