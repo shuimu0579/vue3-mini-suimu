@@ -1,5 +1,8 @@
 // transform就是对parse生成之后的AST进行增删改查
 
+import { NodeTypes } from "./ast";
+import { TO_DISPLAY_STRING } from "./runtimeHelpers";
+
 // options机制，做到不变代码和可变代码的分离
 export function transform(root, options = {}){
   const context = createTransformContext(root, options)
@@ -9,6 +12,8 @@ export function transform(root, options = {}){
 
   // root.codegenNode
   createRootCodegen(root)
+
+  root.helpers = [...context.helpers.keys()]
 }
 
 function createRootCodegen(root:any){
@@ -25,23 +30,37 @@ function traverseNode(node: any, context) {
   }
   console.log('node',node)
 
-  traverseChildren(node, context)
+  switch (node.type) {
+    case NodeTypes.INTERPOLATION:
+      context.helper(TO_DISPLAY_STRING)
+      break;
+
+    case NodeTypes.ROOT:
+    case NodeTypes.ELEMENT:
+      traverseChildren(node, context);
+      break;
+  
+    default:
+      break;
+  }
 }
 
 function traverseChildren(node, context){
   let children = node.children
-  if(children){
-    for(let i = 0; i < children.length;i++){
-      const node = children[i];
-      traverseNode(node, context)
-    }
+  for(let i = 0; i < children.length;i++){
+    const node = children[i];
+    traverseNode(node, context)
   }
 }
 
 function createTransformContext(root: any, options: any) {
   const context = {
     root,
-    nodeTransforms: options.nodeTransforms || []
+    nodeTransforms: options.nodeTransforms || [],
+    helpers: new Map(),
+    helper(key){
+      context.helpers.set(key, 1)
+    }
   }
 
   return context;
