@@ -1,11 +1,19 @@
 // transform就是对parse生成之后的AST进行增删改查
 
 // options机制，做到不变代码和可变代码的分离
-export function transform(root, options){
+export function transform(root, options = {}){
   const context = createTransformContext(root, options)
   // 1.遍历--深度优先搜索
   traverseNode(root, context);
   // 2.修改 text content
+
+  // root.codegenNode
+  createRootCodegen(root)
+}
+
+function createRootCodegen(root:any){
+  root.codegenNode = root.children[0];
+
 }
 function traverseNode(node: any, context) {
   console.log('traverseNode', node);
