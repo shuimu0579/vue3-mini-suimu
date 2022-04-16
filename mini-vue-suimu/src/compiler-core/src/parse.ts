@@ -59,7 +59,7 @@ function parseInterpolation(context){
   const closeDelimiter = "}}";
 
   const closeIndex = context.source.indexOf(closeDelimiter, openDelimiter.length);
-  console.log('closeIndex', closeIndex);
+  // console.log('closeIndex', closeIndex);
   advanceBy(context, openDelimiter.length);
   const rawContentLength = closeIndex - openDelimiter.length; 
   const rawContent = parseTextData(context, rawContentLength);
@@ -97,15 +97,15 @@ function parseElement(context: any, ancestors) {
   element.children = parseChildren(context, ancestors);
   ancestors.pop();
 
-  console.log(element.tag);
-  console.log(context.source);
+  // console.log(element.tag);
+  // console.log(context.source);
   if(startsWithEndTagOpen(context.source, element.tag)){
     parseTag(context, TagType.End)
   }else{
     throw new Error(`缺少结束标签：${element.tag}`)
   }
   
-  console.log('------',context.source)
+  // console.log('------',context.source)
   return element;
 }
 
@@ -119,7 +119,7 @@ function parseTag(context:any, type:TagType){
   const tag = match[1]
   // 2.删除处理完成的代码
   advanceBy(context, match[0].length);
-  console.log('parseTag',context.source)
+  // console.log('parseTag',context.source)
   advanceBy(context, 1);
 
   if(type === TagType.End) return;
@@ -140,8 +140,8 @@ function parseText(context: any): any {
   }
 
   const content = parseTextData(context, endIndex);
-  console.log(context.source.length);
-  console.log("content----", content);
+  // console.log(context.source.length);
+  // console.log("content----", content);
   return {
     type: NodeTypes.TEXT,
     content
@@ -153,6 +153,6 @@ function parseTextData(context, length){
   const content = context.source.slice(0, length);
   // 2.advanceBy推进
   advanceBy(context,length);
-  console.log('parseText',context.source)
+  // console.log('parseText',context.source)
   return content
 }
