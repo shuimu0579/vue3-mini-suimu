@@ -9,7 +9,7 @@
       "--runInBand",
       "--watchAll=false"
     ],
-    "cwd": "${workspaceFolder}",
+    "cwd": "${workspaceFolder}/mini-vue-suimu",
     "console": "integratedTerminal",
     "internalConsoleOptions": "neverOpen",
     "disableOptimisticBPs": true,
