@@ -68,7 +68,7 @@
 - [x] 50-实现代码生成插值类型(<https://www.wolai.com/cuixiaorui/73zPZQNyhuAfPBnVkMSaGZ>)(30m20s)
 - [x] 51-实现代码生成element类型及其三种联合类型(<https://www.wolai.com/cuixiaorui/qq6dS7cYU2w6McSBRSVA9Y>)(43m05s)
 
-- [ ] 52-实现编译 template 成 render 函数（大结局）(<https://www.wolai.com/cuixiaorui/dmS3GKXVnfaMh5EodPXS38>)(20m33s)
+- [x] 52-实现编译 template 成 render 函数（大结局）(<https://www.wolai.com/cuixiaorui/dmS3GKXVnfaMh5EodPXS38>)(20m33s)
 
 ### vue3 源码实战课相关资料
 
